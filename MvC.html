@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Marvel vs Capcom (RetroGames) — Casper Fit</title>
+  <style>
+    :root{
+      --bg: #000;
+      --panel: rgba(0,0,0,0.55);
+      --panel-border: rgba(255,255,255,0.10);
+
+      /* Aspect ratio del área visible del juego (la mayoría de arcades = 4:3) */
+      --game-aspect-w: 4;
+      --game-aspect-h: 3;
+
+      /* CRT */
+      --scanline-a: 0.05;
+      --scanline-b: 0.08;
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      margin:0;
+      width:100%;
+      height:100%;
+      background:var(--bg);
+      overflow:hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#fff;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .stage{
+      position:relative;
+      width:100%;
+      height:100vh;   /* fallback */
+      height:100dvh;  /* moderno */
+      background:#000;
+    }
+
+    /* Barra superior minimalista */
+    .topbar{
+      position:absolute;
+      top: max(10px, env(safe-area-inset-top, 0px));
+      left: max(10px, env(safe-area-inset-left, 0px));
+      right: max(10px, env(safe-area-inset-right, 0px));
+      z-index:20;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      pointer-events:none;
+    }
+
+    .topbar .badge{
+      pointer-events:auto;
+      display:inline-flex;
+      align-items:center;
+      padding:10px 12px;
+      border:1px solid var(--panel-border);
+      background:var(--panel);
+      border-radius:12px;
+      backdrop-filter: blur(6px);
+      max-width:min(72vw, 820px);
+    }
+
+    .topbar .title{
+      font-weight:900;
+      letter-spacing:0.06em;
+      font-size: clamp(11px, 1.6vw, 12px);
+      opacity:0.95;
+      text-transform:uppercase;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn{
+      pointer-events:auto;
+      cursor:pointer;
+      border:1px solid var(--panel-border);
+      background:rgba(0,0,0,0.65);
+      color:#fff;
+      padding:10px 12px;
+      min-height:44px;
+      border-radius:12px;
+      font-weight:900;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      font-size: clamp(11px, 1.8vw, 12px);
+      white-space:nowrap;
+      user-select:none;
+    }
+    .btn:hover{ background:rgba(0,0,0,0.8); }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Mobile clean: oculta título y deja solo botón */
+    @media (max-width: 520px){
+      .topbar{ justify-content:flex-end; }
+      .topbar .badge{ display:none; }
+    }
+
+    .crt{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+      background:#000;
+      display:grid;
+      place-items:center;
+    }
+
+    /* Ventana del juego: SIEMPRE ajusta sin recortar (letterbox si hace falta) */
+    .game-shell{
+      width: min(100vw, calc(100dvh * (var(--game-aspect-w) / var(--game-aspect-h))));
+      height: min(100dvh, calc(100vw * (var(--game-aspect-h) / var(--game-aspect-w))));
+      aspect-ratio: var(--game-aspect-w) / var(--game-aspect-h);
+      background:#000;
+      position:relative;
+      overflow:hidden;
+      border-radius: 10px;
+    }
+
+    /* Iframe: ocupa la ventana completa */
+    #gameFrame{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      background:#000;
+      z-index:1;
+    }
+
+    /* Scanlines */
+    .crt::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:8;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,var(--scanline-a)) 0px,
+          rgba(255,255,255,var(--scanline-a)) 1px,
+          rgba(0,0,0,var(--scanline-b)) 2px,
+          rgba(0,0,0,var(--scanline-b)) 3px
+        );
+      mix-blend-mode: overlay;
+    }
+
+    /* Viñeta */
+    .crt::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:9;
+      pointer-events:none;
+      background: radial-gradient(ellipse at center,
+        rgba(0,0,0,0) 55%,
+        rgba(0,0,0,0.25) 75%,
+        rgba(0,0,0,0.55) 100%);
+    }
+
+    /* En landscape con poca altura, respeta safe-area */
+    @media (max-height: 520px){
+      .topbar{ top: max(6px, env(safe-area-inset-top, 0px)); }
+      .btn{ padding:8px 10px; min-height:40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="topbar">
+      <div class="badge">
+        <div class="title">Marvel vs Capcom — Clash of Super Heroes (980112 Asia)</div>
+      </div>
+      <button class="btn" id="fsBtn" type="button" aria-label="Pantalla completa">Fullscreen</button>
+    </div>
+
+    <div class="crt">
+      <div class="game-shell" aria-label="Pantalla del juego">
+        <iframe
+          id="gameFrame"
+          src="https://www.retrogames.cc/embed/9113-marvel-vs-capcom-clash-of-super-heroes-980112-asia.html"
+          allowfullscreen="true"
+          webkitallowfullscreen="true"
+          mozallowfullscreen="true"
+          scrolling="no">
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const fsBtn = document.getElementById('fsBtn');
+
+    function isFullscreen(){
+      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    }
+
+    async function toggleFullscreen(){
+      try{
+        if(!isFullscreen()){
+          if(stage.requestFullscreen) await stage.requestFullscreen();
+          else if(stage.webkitRequestFullscreen) await stage.webkitRequestFullscreen();
+          else if(stage.mozRequestFullScreen) await stage.mozRequestFullScreen();
+          else if(stage.msRequestFullscreen) await stage.msRequestFullscreen();
+        }else{
+          if(document.exitFullscreen) await document.exitFullscreen();
+          else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+          else if(document.mozCancelFullScreen) await document.mozCancelFullScreen();
+          else if(document.msExitFullscreen) await document.msExitFullscreen();
+        }
+      }catch(e){
+        console.warn('Fullscreen error:', e);
+      }
+    }
+
+    function syncFsLabel(){
+      fsBtn.textContent = isFullscreen() ? 'Exit Fullscreen' : 'Fullscreen';
+    }
+
+    fsBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', syncFsLabel);
+    document.addEventListener('webkitfullscreenchange', syncFsLabel);
+    syncFsLabel();
+  </script>
+</body>
+</html>
