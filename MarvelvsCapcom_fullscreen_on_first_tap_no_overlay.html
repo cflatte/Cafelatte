@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Marvel vs Capcom — RetroGames</title>
+  <style>
+    html, body{
+      margin:0;
+      width:100%;
+      height:100%;
+      background:#000;
+      overflow:hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#fff;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .wrap{
+      width:100%;
+      height:100vh;   /* fallback */
+      height:100dvh;  /* móviles */
+      display:grid;
+      place-items:center;
+      background:#000;
+      position:relative;
+    }
+
+    .frame{
+      width: min(100vw, calc(100dvh * (4 / 3)));
+      height: min(100dvh, calc(100vw * (3 / 4)));
+      aspect-ratio: 4 / 3;
+      background:#000;
+      position:relative;
+      overflow:hidden;
+    }
+
+    iframe{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      background:#000;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="stage">
+    <div class="frame">
+      <iframe
+        id="gameFrame"
+        src="https://www.retrogames.cc/embed/9113-marvel-vs-capcom-clash-of-super-heroes-980112-asia.html"
+        frameborder="0"
+        scrolling="no"
+        allow="fullscreen"
+        allowfullscreen="true"
+        webkitallowfullscreen="true"
+        mozallowfullscreen="true">
+      </iframe>
+    </div>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const frame = document.getElementById('gameFrame');
+
+    function isFullscreen() {
+      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    }
+
+    async function requestFullscreenNative() {
+      try {
+        // Intentamos fullscreen del iframe primero (lo más cercano al “nativo del frame”)
+        if (frame.requestFullscreen) await frame.requestFullscreen();
+        else if (frame.webkitRequestFullscreen) await frame.webkitRequestFullscreen();
+        else if (stage.requestFullscreen) await stage.requestFullscreen();
+        else if (stage.webkitRequestFullscreen) await stage.webkitRequestFullscreen();
+      } catch (e) {
+        console.warn('Fullscreen error:', e);
+      }
+    }
+
+    // Primer toque/clic en cualquier parte intenta fullscreen.
+    // Nota: algunos navegadores requieren que el gesto no sea "passthrough" hacia el iframe.
+    // Por eso escuchamos en "capture" a nivel documento.
+    function onFirstUserGesture(e) {
+      if (isFullscreen()) return;
+      requestFullscreenNative();
+      // Después del primer intento, removemos el listener para no molestar
+      document.removeEventListener('pointerdown', onFirstUserGesture, true);
+      document.removeEventListener('touchstart', onFirstUserGesture, true);
+      document.removeEventListener('mousedown', onFirstUserGesture, true);
+    }
+
+    document.addEventListener('pointerdown', onFirstUserGesture, true);
+    document.addEventListener('touchstart', onFirstUserGesture, true);
+    document.addEventListener('mousedown', onFirstUserGesture, true);
+  </script>
+</body>
+</html>
