@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Series</title>
+  <style>
+    :root{
+      --bg: #000;
+      --panel: rgba(15, 15, 15, 0.74);
+      --text: #f3f3f3;
+      --muted: #b9b9b9;
+      --accent: #00d4ff;
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 0 25px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .menu-toggle {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1200;
+      width: 52px;
+      height: 52px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(20, 20, 20, 0.78);
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .menu-toggle:hover {
+      transform: scale(1.05);
+      background: rgba(35, 35, 35, 0.9);
+      border-color: rgba(255,255,255,0.24);
+    }
+
+    .menu-toggle span {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      max-width: 88vw;
+      height: 100vh;
+      z-index: 1100;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      box-shadow: 10px 0 35px rgba(0,0,0,.38);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transform: translateX(-100%);
+      transition: transform .28s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      padding: 20px 18px 16px 88px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      min-height: 96px;
+    }
+
+    .sidebar-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .chapter-list {
+      list-style: none;
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .chapter-list::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .chapter-list::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+    }
+
+    .chapter-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+    }
+
+    .chapter-item {
+      margin-bottom: 10px;
+    }
+
+    .chapter-button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 14px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .chapter-button:hover {
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.16);
+      transform: translateX(2px);
+    }
+
+    .chapter-button.active {
+      background: rgba(0, 212, 255, 0.16);
+      border-color: rgba(0, 212, 255, 0.42);
+      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.1) inset;
+    }
+
+    .chapter-button.disabled {
+      opacity: 0.62;
+    }
+
+    .chapter-name {
+      font-size: 15px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .chapter-note {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      line-height: 1.35;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 48px);
+    }
+
+    .player-wrapper {
+      width: 100%;
+    }
+
+    .player-card {
+      width: 100%;
+      background: #111;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .player-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .player-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .player-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-button {
+      min-width: 110px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+    }
+
+    .nav-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.24);
+    }
+
+    .nav-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .video-stage {
+      position: relative;
+      width: 100%;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      min-height: 240px;
+    }
+
+    .video-stage > div,
+    .video-stage iframe {
+      width: 100% !important;
+      height: 100% !important;
+      border: 0 !important;
+      display: block !important;
+    }
+
+    .help-box {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .mono {
+      font-family: Consolas, Monaco, monospace;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+
+      .menu-toggle {
+        top: 12px;
+        left: 12px;
+        width: 48px;
+        height: 48px;
+      }
+
+      .sidebar-header {
+        padding: 18px 16px 14px 78px;
+        min-height: 88px;
+      }
+
+      .player-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .player-title {
+        font-size: 16px;
+      }
+
+      .player-nav {
+        width: 100%;
+      }
+
+      .nav-button {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú de capítulos" title="Abrir menú">
+    <span>☰</span>
+  </button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Capítulos</div>
+      <div class="sidebar-subtitle">
+        THUNDERCATS 
+      </div>
+    </div>
+    <ul class="chapter-list" id="chapterList"></ul>
+  </aside>
+
+  <div class="overlay" id="overlay"></div>
+
+  <main class="page">
+    <section class="player-wrapper">
+      <div class="player-card">
+        <div class="player-topbar">
+          <div class="player-title" id="currentTitle">Capítulo 1</div>
+          <div class="player-nav">
+            <button class="nav-button" id="prevButton" type="button">Anterior</button>
+            <button class="nav-button" id="nextButton" type="button">Siguiente</button>
+          </div>
+        </div>
+        <div class="video-stage" id="playerHost">
+          <div id="rumble_player"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    !function(r,u,m,b,l,e){
+      r._Rumble=b;
+      if(!r[b]){
+        r[b]=function(){
+          (r[b]._=r[b]._||[]).push(arguments);
+          if(r[b]._.length===1){
+            l=u.createElement(m);
+            e=u.getElementsByTagName(m)[0];
+            l.async=1;
+            l.src="https://rumble.com/embedJS/u4"+(arguments[1].video?'.'+arguments[1].video:'')+"/?url="+encodeURIComponent(location.href)+"&args="+encodeURIComponent(JSON.stringify([].slice.apply(arguments)));
+            e.parentNode.insertBefore(l,e);
+          }
+        }
+      }
+    }(window, document, "script", "Rumble");
+  </script>
+
+  <script>
+    const episodes = [
+      { title: "Capítulo 1", video: "v2q73z6", note: "Éxodo" },
+      { title: "Capítulo 2", video: "v2q7g9e", note: "La Alianza Profana" },
+      { title: "Capítulo 3", video: "v2q7wj2", note: "La Ayuda de los Berbils" },
+      { title: "Capítulo 4", video: "v2q7z3m", note: "Los Esclavos del Castillo Plun-Darr" },
+      { title: "Capítulo 5", video: "v2q7zfa", note: "Pumm-Ra" },
+      { title: "Capítulo 6", video: "v2q82xo", note: "El Terror de Brazo de Hierro" },
+      { title: "Capítulo 7", video: "v2q8370", note: "Cuestión de Tiempo" },
+      { title: "Capítulo 8", video: "v2qbjs0", note: "La Torre de las Trampas" },
+      { title: "Capítulo 9", video: "v2qbodo", note: "El Jardín de las Delicias" },
+      { title: "Capítulo 10", video: "v2qbrqm", note: "Mandora, la Combatiente del Mal" },
+      { title: "Capítulo 11", video: "v2qj6uc", note: "El Guerrero Fantasma" },
+      { title: "Capítulo 12", video: "v2qbuoe", note: "La Mirada de Gaze" },
+      { title: "Capítulo 13", video: "v2qbv9e", note: "El Señor de las Nieves" },
+      { title: "Capítulo 14", video: "v2qc5de", note: "El Rescate de la Nave Mutante" },
+      { title: "Capítulo 15", video: "v2qc64m", note: "La Cápsula del Tiempo" },
+      { title: "Capítulo 16", video: "v2qc6wm", note: "Las Bolas de Fuego de Plun-Darr" },
+      { title: "Capítulo 17", video: "v2qeuny", note: "Esa Basura que Brilla" },
+      { title: "Capítulo 18", video: "v2qexag", note: "Doble Personalidad" },
+      { title: "Capítulo 19", video: "v2qexje", note: "Mongor" },
+      { title: "Capítulo 20", video: "v2qexsc", note: "Regreso a Thundera" },
+      { title: "Capítulo 21", video: "v2qg1ym", note: "El Dr. Observador" },
+      { title: "Capítulo 22", video: "v2qg91c", note: "La Prisión Astral" },
+      { title: "Capítulo 23", video: "v2qg976", note: "La Reina de Cristal" },
+      { title: "Capítulo 24", video: "v2qj724", note: "Safari Joe" },
+      { title: "Capítulo 25", video: "v2qg9i2", note: "Snarf al Rescate" },
+      { title: "Capítulo 26", video: "v2qg9ks", note: "Snarf al Rescate" },
+      { title: "Capítulo 27", video: "v2qg9mq", note: "Hachiman, el Último Guerrero" },
+      { title: "Capítulo 28", video: "v2qg9pg", note: "La Rata-Lobo" },
+      { title: "Capítulo 29", video: "v2qg9sy", note: "La Estrella Rata - Parte I" },
+      { title: "Capítulo 30", video: "v2qg9w2", note: "La Estrella Rata - Parte II" },
+      { title: "Capítulo 31", video: "v2qk2yi", note: "Mandora y los Piratas" },
+      { title: "Capítulo 32", video: "v2qk54a", note: "El Regreso de Barreno" },
+      { title: "Capítulo 33", video: "v2qjy0c", note: "Tutan-Ra, el Hechicero" },
+      { title: "Capítulo 34", video: "v2qlooq", note: "La Reina de Ocho Patas" },
+      { title: "Capítulo 35", video: "v2qlp2q", note: "La Espada en el Hoyo" },
+      { title: "Capítulo 36", video: "v2qlp7e", note: "El Genio de la Gran Arpa de Oro" },
+      { title: "Capítulo 37", video: "v2qlpgc", note: "El Genio de la Gran Arpa de Oro" },
+      { title: "Capítulo 38", video: "v2qlpls", note: "El Demoledor" },
+      { title: "Capítulo 39", video: "v2qlpt6", note: "El Trato con Mandrilok" },
+      { title: "Capítulo 40", video: "v2qncwy", note: "Situación Apretada" },
+      { title: "Capítulo 41", video: "v2qnh50", note: "Los Micro Seres" },
+      { title: "Capítulo 42", video: "v2qnidc", note: "Las Competencias Felinas" },
+      { title: "Capítulo 43", video: "v2qniom", note: "El Gigante de Roca" },
+      { title: "Capítulo 44", video: "v2qnm8y", note: "La Rebelión de Chaka-Lom" },
+      { title: "Capítulo 45", video: "v2qnmq2", note: "Turmagar, el Tuska" },
+      { title: "Capítulo 46", video: "v2qnmuc", note: "La Prueba de la Astucia" },
+      { title: "Capítulo 47", video: "v2qnmz0", note: "El Falso Berbil" },
+      { title: "Capítulo 48", video: "v2qnn60", note: "La Plaga Mecánica" },
+      { title: "Capítulo 49", video: "v2qnnao", note: "Atrapados" },
+      { title: "Capítulo 50", video: "v2qnney", note: "La Competencia del Poder Mental" },
+      { title: "Capítulo 51", video: "v2qofgw", note: "El Duelo de las Espadas Excalibur" },
+      { title: "Capítulo 52", video: "v2qohie", note: "El Secreto del Rey de Hielo" },
+      { title: "Capítulo 53", video: "v2qohjy", note: "Bueno y Feo" },
+      { title: "Capítulo 54", video: "v2qpfoa", note: "El Traslado" },
+      { title: "Capítulo 55", video: "v2qp02c", note: "Divide y Vencerás" },
+      { title: "Capítulo 56", video: "v2qphrc", note: "El Amo de los Sueños" },
+      { title: "Capítulo 57", video: "v2qphyc", note: "La Desaparición de Huila" },
+      { title: "Capítulo 58", video: "v2qpi4k", note: "La Montaña" },
+      { title: "Capítulo 59", video: "v2qpiae", note: "La Pócima de los Super Poderes" },
+      { title: "Capítulo 60", video: "v2qs7w0", note: "La Falsa Espada del Augurio" },
+      { title: "Capítulo 61", video: "v2qsqys", note: "La Prueba del Mal" },
+      { title: "Capítulo 62", video: "v2qssng", note: "El Problema con los Felinos" },
+      { title: "Capítulo 63", video: "v2qsu20", note: "Mumm-Rana" },
+      { title: "Capítulo 64", video: "v2qxnvm", note: "El Transmutador" },
+      { title: "Capítulo 65", video: "v2qxwjw", note: "Un Afectuoso Recuerdo" },
+      { title: "Capítulo 66", video: "v2qyafm", note: "Thundercats Ho! - Parte I" },
+      { title: "Capítulo 67", video: "v2qygfg", note: "Thundercats Ho! - Parte II" },
+      { title: "Capítulo 68", video: "v2qzpvi", note: "Thundercats Ho! - Parte III" },
+      { title: "Capítulo 69", video: "v2qzuv6", note: "Thundercats Ho! - Parte IV" },
+      { title: "Capítulo 70", video: "v2qzv8s", note: "Thundercats Ho! - Parte V" },
+      { title: "Capítulo 71", video: "v2r017u", note: "Mumm-Ra Vive - Parte I" },
+      { title: "Capítulo 72", video: "v2r2eho", note: "Mumm-Ra Vive - Parte II" },
+      { title: "Capítulo 73", video: "v2rfpas", note: "Mumm-Ra Vive - Parte III" },
+      { title: "Capítulo 74", video: "v2rgk6o", note: "Mumm-Ra Vive - Parte IV" },
+      { title: "Capítulo 75", video: "v2ri4c4", note: "Mumm-Ra Vive - Parte V" },
+      { title: "Capítulo 76", video: "v2rjkzq", note: "Ría Gatuna" },
+      { title: "Capítulo 77", video: "v2rlb5y", note: "Dominados" },
+      { title: "Capítulo 78", video: "v2rnrc4", note: "La Máscara de Gorgona" },
+      { title: "Capítulo 79", video: "v2rp0g4", note: "El Monstruo Burbuja" },
+      { title: "Capítulo 80", video: "v2rrd2u", note: "El Monstruo Burbuja" },
+      { title: "Capítulo 81", video: "v2rtbg2", note: "Isla del Mal" },
+      { title: "Capítulo 82", video: "v2rvr4a", note: "Cápsula del Tiempo" },
+      { title: "Capítulo 83", video: "v2rytf8", note: "Las Piedras de Sonido" },
+      { title: "Capítulo 84", video: "v2s2el6", note: "El Día del Eclipse" },
+      { title: "Capítulo 85", video: "v2s59hq", note: "El Arresto" },
+      { title: "Capítulo 86", video: "v2v9som", note: "El Cinturón de Mumm-Rana" },
+      { title: "Capítulo 87", video: "v2x6n0g", note: "El Honor de Hachiman" },
+      { title: "Capítulo 88", video: "v2y4wbi", note: "Los Fugitivos" },
+      { title: "Capítulo 89", video: "v2yc4m6", note: "Mammud en Acción" },
+      { title: "Capítulo 90", video: "v2yjpkm", note: "La Venganza de Buitro" },
+      { title: "Capítulo 91", video: "v2z3ijo", note: "Thunder Cachorros - Parte I" },
+      { title: "Capítulo 92", video: "v2zkpyk", note: "Thunder Cachorros - Parte II" },
+      { title: "Capítulo 93", video: "v2zvrye", note: "Thunder Cachorros - Parte III" },
+      { title: "Capítulo 94", video: "v32te1a", note: "Thunder Cachorros - Parte IV" },
+      { title: "Capítulo 95", video: "v32yggg", note: "Thunder Cachorros - Parte V" },
+      { title: "Capítulo 96", video: "v332flm", note: "El Tótem de Dera" },
+      { title: "Capítulo 97", video: "v338g4w", note: "La Cadena de la Lealtad" },
+      { title: "Capítulo 98", video: "v33bw8u", note: "El Cañón de Cristal" },
+      { title: "Capítulo 99", video: "v33dznk", note: "El Rayo Telepatico" },
+      { title: "Capítulo 100", video: "v344fez", note: "La Isla del Exilio" },
+      { title: "Capítulo 101", video: "v3qkjiy", note: "La Llave de Thundera" },
+      { title: "Capítulo 102", video: "v3pov5h", note: "El Regreso de los Thunder Cachorros" },
+      { title: "Capítulo 103", video: "v3qko07", note: "La Fórmula" },
+      { title: "Capítulo 104", video: "v3ql5di", note: "El Medallón del Engaño" },
+      { title: "Capítulo 105", video: "v3qld3d", note: "El Brazalete del Poder" },
+      { title: "Capítulo 106", video: "v3q8cyw", note: "Tras el Tesoro de Thundera" },
+      { title: "Capítulo 107", video: "v3qmqxz", note: "El Thunderescopio" },
+      { title: "Capítulo 109", video: "v3r5rq7", note: "El Tren del Circo" },
+      { title: "Capítulo 110", video: "v3r9u9g", note: "El Último Día" },
+      { title: "Capítulo 111", video: "v6zv862", note: "Regreso a Thundera - Parte I" },
+      { title: "Capítulo 112", video: "v3qyvp1", note: "Regreso a Thundera - Parte II" },
+      { title: "Capítulo 113", video: "v3qyyoj", note: "Regreso a Thundera - Parte III" },
+      { title: "Capítulo 114", video: "v3rbikg", note: "Regreso a Thundera - Parte IV" },
+      { title: "Capítulo 115", video: "v3rbwtd", note: "Regreso a Thundera - Parte V" },
+      { title: "Capítulo 116", video: "v3rqj81", note: "Leah" },
+      { title: "Capítulo 117", video: "v3rqscj", note: "El Hombre Rana" },
+      { title: "Capítulo 118", video: "v3rqy6s", note: "La Herencia" },
+      { title: "Capítulo 119", video: "v3rr1f7", note: "Tornillo Suelto" },
+      { title: "Capítulo 120", video: "v3rr6pm", note: "Malcar" },
+      { title: "Capítulo 121", video: "v3rresa", note: "Risas sin Control" },
+      { title: "Capítulo 122", video: "v3rrhb4", note: "La Venganza del Pirata" },
+      { title: "Capítulo 123", video: "v3rrkmp", note: "El Monstruo Verde" },
+      { title: "Capítulo 124", video: "v3rrnrd", note: "Ma-Mutts se Confunde" },
+      { title: "Capítulo 125", video: "v3rrryv", note: "El Amo de las Sombras" },
+      { title: "Capítulo 126", video: "v3rrvuv", note: "Doble Reto" },
+      { title: "Capítulo 127", video: "v3rs051", note: "El Toque de Amortus" },
+      { title: "Capítulo 128", video: "v3rs1jm", note: "El Medallón del Mal" },
+      { title: "Capítulo 129", video: "v3rsbqp", note: "La Fuente de las Dudas" },
+      { title: "Capítulo 130", video: "v3rsjey", note: "El Libro del Augurio" }
+       ];
+
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const menuToggle = document.getElementById("menuToggle");
+    const chapterList = document.getElementById("chapterList");
+    const currentTitle = document.getElementById("currentTitle");
+    const playerHost = document.getElementById("playerHost");
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+
+    let activeIndex = 0;
+
+    function toggleMenu(forceOpen) {
+      const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : !sidebar.classList.contains("open");
+      sidebar.classList.toggle("open", shouldOpen);
+      overlay.classList.toggle("show", shouldOpen);
+    }
+
+    function closeMenuOnMobile() {
+      if (window.innerWidth <= 1024) {
+        toggleMenu(false);
+      }
+    }
+
+    function isPlayable(index) {
+      return index >= 0 && index < episodes.length && !String(episodes[index].video).includes("REEMPLAZA_");
+    }
+
+    function getPreviousPlayableIndex(index) {
+      for (let i = index - 1; i >= 0; i--) {
+        if (isPlayable(i)) return i;
+      }
+      return -1;
+    }
+
+    function getNextPlayableIndex(index) {
+      for (let i = index + 1; i < episodes.length; i++) {
+        if (isPlayable(i)) return i;
+      }
+      return -1;
+    }
+
+    function updateNavButtons() {
+      prevButton.disabled = getPreviousPlayableIndex(activeIndex) === -1;
+      nextButton.disabled = getNextPlayableIndex(activeIndex) === -1;
+    }
+
+    function goToEpisode(index) {
+      if (!isPlayable(index)) return;
+      activeIndex = index;
+      renderMenu();
+      loadEpisode(episodes[index]);
+      updateNavButtons();
+    }
+
+    menuToggle.addEventListener("click", () => toggleMenu());
+    overlay.addEventListener("click", () => toggleMenu(false));
+
+    prevButton.addEventListener("click", () => {
+      const prevIndex = getPreviousPlayableIndex(activeIndex);
+      if (prevIndex !== -1) {
+        goToEpisode(prevIndex);
+      }
+    });
+
+    nextButton.addEventListener("click", () => {
+      const nextIndex = getNextPlayableIndex(activeIndex);
+      if (nextIndex !== -1) {
+        goToEpisode(nextIndex);
+      }
+    });
+
+    function renderMenu() {
+      chapterList.innerHTML = "";
+      episodes.forEach((episode, index) => {
+        const li = document.createElement("li");
+        li.className = "chapter-item";
+
+        const btn = document.createElement("button");
+        const isPlaceholder = !isPlayable(index);
+        btn.className = "chapter-button" + (index === activeIndex ? " active" : "") + (isPlaceholder ? " disabled" : "");
+        btn.type = "button";
+
+        btn.innerHTML = `
+          <span class="chapter-name">${episode.title}</span>
+          <span class="chapter-note">${episode.note || ""}</span>
+        `;
+
+        btn.addEventListener("click", () => {
+          if (isPlaceholder) {
+            alert("Este capítulo es un ejemplo. Reemplaza el ID de video en el arreglo 'episodes' del HTML.");
+            return;
+          }
+          goToEpisode(index);
+          closeMenuOnMobile();
+        });
+
+        li.appendChild(btn);
+        chapterList.appendChild(li);
+      });
+    }
+
+    function loadEpisode(episode) {
+      currentTitle.textContent = episode.title;
+      playerHost.innerHTML = '<div id="rumble_player"></div>';
+
+      if (typeof window.Rumble === "function") {
+        try {
+          window.Rumble("play", {
+            video: episode.video,
+            div: "rumble_player"
+          });
+        } catch (error) {
+          playerHost.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:24px;color:#fff;text-align:center;">
+              No se pudo cargar el video. Verifica el ID de Rumble.
+            </div>
+          `;
+          console.error(error);
+        }
+      }
+    }
+
+    renderMenu();
+    updateNavButtons();
+    loadEpisode(episodes[0]);
+  </script>
+</body>
+</html>
