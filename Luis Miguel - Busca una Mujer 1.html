@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Rockola</title>
+<link rel="icon" type="image/png" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/rockola-u7iOXJlzGa0Z99pNUgu32R4zeYSaxC.png">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+    .player-container {
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 400px;
+        padding: 20px;
+        position: relative;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .spotify-btn, .volume-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .spotify-btn svg, .volume-btn svg {
+        width: 24px;
+        height: 24px;
+        fill: #666; /* Update: Changed fill color to #666 */
+    }
+    .logo {
+        width: 40px;
+        height: 40px;
+    }
+    .cover-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .book-info {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .book-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .book-author {
+        font-size: 1em;
+        color: #666;
+    }
+    .chapter-info {
+        font-size: 0.9em;
+        color: #888;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .progress-bar {
+        width: 100%;
+        height: 4px;
+        background-color: #e0e0e0;
+        margin-bottom: 10px;
+        position: relative;
+        cursor: pointer;
+    }
+    .progress {
+        width: 0%;
+        height: 100%;
+        background-color: #800080;
+        position: absolute;
+    }
+    .progress-handle {
+        width: 12px;
+        height: 12px;
+        background-color: #800080;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+    }
+    .time-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8em;
+        color: #666;
+        margin-bottom: 20px;
+    }
+    .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .control-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .control-btn svg {
+        width: 30px;
+        height: 30px;
+        fill: #666;
+    }
+    .play-pause {
+        width: 60px;
+        height: 60px;
+        background-color: #800080;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .play-pause svg {
+        width: 30px;
+        height: 30px;
+        fill: white;
+    }
+    .playback-speed {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .additional-controls {
+        display: flex;
+        justify-content: space-between;
+    }
+    .additional-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.8em;
+        color: #666;
+    }
+    .additional-btn svg {
+        width: 24px;
+        height: 24px;
+        fill: #666;
+        margin-bottom: 5px;
+    }
+    .additional-btn.active svg {
+        fill: #800080;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #ffffff;
+        margin: 15% auto;
+        padding: 20px;
+        border: none;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .chapter-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .chapter-list li {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .chapter-list li:last-child {
+        border-bottom: none;
+    }
+    .chapter-list li:hover {
+        background-color: #f0f0f0;
+    }
+    .chapter-list li.active {
+        background-color: #D29BFD;
+        font-weight: bold;
+    }
+    .chapter-duration {
+        color: #888;
+        font-size: 0.9em;
+        margin-left: auto;
+        padding-left: 10px;
+    }
+    .timer-options {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .timer-option {
+        background-color: #f0f0f0;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .timer-option:hover {
+        background-color: #e0e0e0;
+    }
+    #cancelTimer {
+        background-color: #800080;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+    }
+    .volume-slider {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .timer-countdown {
+        text-align: center;
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e0e0e0;
+        display: none;
+    }
+</style>
+</head>
+<body>
+<div class="player-container">
+    <div class="header">
+        <a href="https://open.spotify.com/intl-es/album/6JSqwckfTYWbJj4R1fdOOo?si=HOXe-a4WQTiTGRcksyZCSw" target="_blank" class="spotify-btn" aria-label="Abrir en Spotify">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+        </a>
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/rockola-lYcRbhYuYmGbYMzWlxUVGnCswAyPmr.png" alt="Logo Rockola" class="logo">
+        <button class="volume-btn" id="volumeButton" aria-label="Ajustar volumen">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </button>
+    </div>
+    <img id="audiobook-cover" class="cover-image" src="https://i.ebayimg.com/images/g/B9IAAOSwXOBghu0B/s-l1200.jpg" alt="Portada del audiolibro">
+    <div class="book-info">
+        <div class="book-title">Busca una mujer</div>
+        <div class="book-author">Luis Miguel</div>
+    </div>
+    <div class="chapter-info" id="chapterInfo">Capítulo 1</div>
+    <div class="progress-bar" id="progressContainer">
+        <div class="progress" id="progressBar"></div>
+        <div class="progress-handle" id="progressHandle"></div>
+    </div>
+    <div class="time-info">
+        <span id="currentTime">00:00</span>
+        <span id="totalTime">00:00</span>
+        <span id="remainingTime">-00:00</span>
+    </div>
+    <div class="controls">
+        <button class="control-btn" id="previousChapter" aria-label="Capítulo anterior">
+            <svg viewBox="0 0 24 24">
+                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+            </svg>
+        </button>
+        <button class="control-btn" id="skipBackward" aria-label="Retroceder 30 segundos">
+            <svg viewBox="0 0 24 24">
+                <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
+            </svg>
+        </button>
+        <button class="control-btn play-pause" id="playPause" aria-label="Reproducir o Pausar">
+            <svg viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+        </button>
+        <button class="control-btn" id="skipForward" aria-label="Avanzar 30 segundos">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>  <!-- Update: Replaced skipForward SVG -->
+            </svg>
+        </button>
+        <button class="control-btn" id="nextChapter" aria-label="Capítulo siguiente">
+            <svg viewBox="0 0 24 24">
+                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+        </button>
+    </div>
+    <div class="playback-speed">
+        <select id="playbackRate">
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+        </select>
+    </div>
+    <div class="additional-controls">
+        <button class="additional-btn" id="chaptersButton" aria-label="Capítulos">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            </svg>
+            Playlist
+        </button>
+        <button class="additional-btn" id="shuffleButton" aria-label="Reproducción aleatoria">
+            <svg viewBox="0 0 24 24">
+                <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+            </svg>
+            Aleatorio
+        </button>
+        <button class="additional-btn" id="timerButton" aria-label="Temporizador de sueño">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
+            Temporizador
+        </button>
+        <button class="additional-btn" id="synopsisButton" aria-label="Sinopsis">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+            Historia
+        </button>
+    </div>
+    <div class="timer-countdown" id="timerCountdown"></div>
+</div>
+
+<!-- Modal para Capítulos -->
+<div id="chaptersModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Playlist</h2>
+        <ul id="chaptersList" class="chapter-list"></ul>
+    </div>
+</div>
+
+<!-- Modal para Temporizador -->
+<div id="timerModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Temporizador de sueño</h2>
+        <div class="timer-options">
+            <button class="timer-option" data-time="15">15 min</button>
+            <button class="timer-option" data-time="30">30 min</button>
+            <button class="timer-option" data-time="45">45 min</button>
+            <button class="timer-option" data-time="60">60 min</button>
+        </div>
+        <button id="cancelTimer">Cancelar temporizador</button>
+    </div>
+</div>
+
+<!-- Modal para Sinopsis -->
+<div id="synopsisModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Historia</h2>
+        <p id="synopsisText">
+        Busca una mujer o más conocido como (Un hombre busca una mujer) es el título del sexto álbum de estudio grabado por el intérprete mexicano Luis Miguel. Fue lanzado al mercado por la compañía discográfica WEA Latina el 25 de noviembre de 1988. Fue el octavo álbum más vendido de México, esto gracias al mega éxito del álbum: "La incondicional", cuyo videoclip después de ser estrenado en exclusiva en el programa Siempre en domingo con Raúl Velasco en 1989, rápidamente escaló a los primeros lugares, permaneciendo semanas en el Top Ten de muchos conteos en Estados Unidos e Hispanoamérica, convirtiéndose en el hit más importante del cantante hasta ese entonces. Fue a partir de este álbum donde Luis Miguel obtuvo un radical cambio de look, pasando de tener el icónico cabello largo que lo caracterizaba antes, a tener el cabello recortado, y musicalmente pasó de la música disco y el pop rock a las baladas románticas.
+        </p>
+    </div>
+</div>
+
+<!-- Modal para Volumen -->
+<div id="volumeModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Ajustar Volumen</h2>
+        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="1">
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const audio = new Audio();
+        const playPauseButton = document.getElementById('playPause');
+        const progressBar = document.getElementById('progressBar');
+        const progressHandle = document.getElementById('progressHandle');
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeDisplay = document.getElementById('totalTime');
+        const remainingTimeDisplay = document.getElementById('remainingTime');
+        const skipBackwardButton = document.getElementById('skipBackward');
+        const skipForwardButton = document.getElementById('skipForward');
+        const previousChapterButton = document.getElementById('previousChapter');
+        const nextChapterButton = document.getElementById('nextChapter');
+        const playbackRateSelect = document.getElementById('playbackRate');
+        const chaptersButton = document.getElementById('chaptersButton');
+        const chaptersModal = document.getElementById('chaptersModal');
+        const chaptersList = document.getElementById('chaptersList');
+        const timerButton = document.getElementById('timerButton');
+        const timerModal = document.getElementById('timerModal');
+        const synopsisButton = document.getElementById('synopsisButton');
+        const synopsisModal = document.getElementById('synopsisModal');
+        const volumeButton = document.getElementById('volumeButton');
+        const volumeModal = document.getElementById('volumeModal');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const timerCountdown = document.getElementById('timerCountdown');
+        const bookTitle = document.querySelector('.book-title').textContent;
+        const shuffleButton = document.getElementById('shuffleButton');
+
+        let chapters = [
+            { title: "01. Fría como el viento", url: "https://audio.jukehost.co.uk/JT9FiEuAWYG1ez3sfZZIGV3tXXZHLQYc" },
+            { title: "02. Esa niña", url: "https://audio.jukehost.co.uk/aLlwh7OODvN66izfmNVFDpxuXk5Ppu4y" },
+            { title: "03. Culpable o no (Mienteme Como Siempre)", url: "https://audio.jukehost.co.uk/Jn112c7POecVBfLe6JIX8PReEgR0CgvM" },
+            { title: "04. Un hombre busca una mujer", url: "https://audio.jukehost.co.uk/JhJDQmYKuOBrHjdzyAC06EB6IK4tBgM0" },
+            { title: "05. La incondicional", url: "https://audio.jukehost.co.uk/hHgTHyouZ6dlLdJ7K8ZPzjun6MPy0UoE" },
+            { title: "06. Separados", url: "https://audio.jukehost.co.uk/MJIuyHxbuS3p9ALm15HFOh9pVfKnoRxx" },
+            { title: "07. Por favor señora", url: "https://audio.jukehost.co.uk/6OCRZrrd9VWcGE0vLClVQYCKjOb5Ys4Y" },
+            { title: "08. Pupilas de gato", url: "https://audio.jukehost.co.uk/FeWBOElnUdZuY7SfLNNFZyB12HmhLcMS" },
+            { title: "09. El primero", url: "https://audio.jukehost.co.uk/hIkkgajPFnIszuT7g4gKBDBl7906IQQV" },
+            { title: "10. Soy un perdedor", url: "https://audio.jukehost.co.uk/ixJhktF9AAID9VnCYMSoCpFoLVDgtYtd" },
+
+            // Añade más canciones aquí
+        ];
+
+        let currentChapterIndex = 0;
+        let sleepTimerID = null;
+        let timerEndTime = null;
+        let chapterDurations = {};
+        let isShuffleMode = false;
+        let shuffledChapters = [];
+
+        function loadChapter(index) {
+            if (isShuffleMode) {
+                currentChapterIndex = chapters.findIndex(chapter => chapter.title === shuffledChapters[index].title);
+            } else {
+                currentChapterIndex = index;
+            }
+
+            if (currentChapterIndex >= 0 && currentChapterIndex < chapters.length) {
+                audio.src = chapters[currentChapterIndex].url;
+                document.getElementById('chapterInfo').textContent = chapters[currentChapterIndex].title;
+                audio.load();
+                audio.play().catch(error => console.error('Error al reproducir el audio:', error));
+                updatePlayPauseButton();
+                updateChaptersList();
+            }
+        }
+
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play().catch(error => console.error('Error al reproducir el audio:', error));
+            } else {
+                audio.pause();
+            }
+            updatePlayPauseButton();
+        }
+
+        function updatePlayPauseButton() {
+            playPauseButton.innerHTML = audio.paused ? 
+                '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' :
+                '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+        }
+
+        function updateProgress() {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressHandle.style.left = `${progress}%`;
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+            totalTimeDisplay.textContent = formatTime(audio.duration);
+            remainingTimeDisplay.textContent = `-${formatTime(audio.duration - audio.currentTime)}`;
+        }
+
+        function formatTime(time) {
+            if (isNaN(time)) return "00:00:00";
+            const hours = Math.floor(time / 3600);
+            const minutes = Math.floor((time % 3600) / 60);
+            const seconds = Math.floor(time % 60);
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function seekAudio(event) {
+            const rect = progressContainer.getBoundingClientRect();
+            const pos = (event.clientX - rect.left) / rect.width;
+            audio.currentTime = pos * audio.duration;
+        }
+
+        function skipAudio(seconds) {
+            audio.currentTime += seconds;
+        }
+
+        function getAudioDuration(url) {
+            return new Promise((resolve) => {
+                const audio = new Audio(url);
+                audio.addEventListener('loadedmetadata', () => {
+                    resolve(audio.duration);
+                });
+                audio.addEventListener('error', () => {
+                    resolve(null);
+                });
+            });
+        }
+
+        async function updateChaptersList() {
+            chaptersList.innerHTML = '';
+            for (let index = 0; index < chapters.length; index++) {
+                const chapter = chapters[index];
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${chapter.title}</span>
+                    <span class="chapter-duration">Cargando...</span>
+                `;
+                li.addEventListener('click', () => {
+                    loadChapter(index);
+                    hideModal(chaptersModal);
+                });
+                if (index === currentChapterIndex) {
+                    li.classList.add('active');
+                }
+                chaptersList.appendChild(li);
+
+                if (!chapterDurations[chapter.url]) {
+                    chapterDurations[chapter.url] = await getAudioDuration(chapter.url);
+                }
+                const duration = chapterDurations[chapter.url];
+                const durationSpan = li.querySelector('.chapter-duration');
+                if (duration) {
+                    durationSpan.textContent = formatTime(duration);
+                } else {
+                    durationSpan.textContent = 'No disponible';
+                }
+            }
+        }
+
+
+        function toggleShuffleMode() {
+            isShuffleMode = !isShuffleMode;
+            if (isShuffleMode) {
+                shuffledChapters = [...chapters].sort(() => Math.random() - 0.5);
+                shuffleButton.classList.add('active');
+            } else {
+                shuffledChapters = [];
+                shuffleButton.classList.remove('active');
+            }
+            loadChapter(0);
+        }
+
+        function getNextChapterIndex() {
+            if (isShuffleMode) {
+                const currentIndex = shuffledChapters.findIndex(chapter => chapter.title === chapters[currentChapterIndex].title);
+                return (currentIndex + 1) % shuffledChapters.length;
+            } else {
+                return (currentChapterIndex + 1) % chapters.length;
+            }
+        }
+
+        function getPreviousChapterIndex() {
+            if (isShuffleMode) {
+                const currentIndex = shuffledChapters.findIndex(chapter => chapter.title === chapters[currentChapterIndex].title);
+                return (currentIndex - 1 + shuffledChapters.length) % shuffledChapters.length;
+            } else {
+                return (currentChapterIndex - 1 + chapters.length) % chapters.length;
+            }
+        }
+
+        function setSleepTimer(minutes) {
+            if (sleepTimerID) {
+                clearTimeout(sleepTimerID);
+            }
+            timerEndTime = new Date().getTime() + minutes * 60 * 1000;
+            updateTimerCountdown();
+            sleepTimerID = setTimeout(() => {
+                audio.pause();
+                updatePlayPauseButton();
+                sleepTimerID = null;
+                timerEndTime = null;
+                updateTimerCountdown();
+            }, minutes * 60 * 1000);
+            hideModal(timerModal);
+        }
+
+        function updateTimerCountdown() {
+            if (timerEndTime) {
+                const now = new Date().getTime();
+                const distance = timerEndTime - now;
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timerCountdown.textContent = `Temporizador: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                timerCountdown.style.display = 'block';
+                setTimeout(updateTimerCountdown, 1000);
+            } else {
+                timerCountdown.textContent = '';
+                timerCountdown.style.display = 'none';
+            }
+        }
+
+        function showModal(modal) {
+            modal.style.display = 'block';
+        }
+
+        function hideModal(modal) {
+            modal.style.display = 'none';
+        }
+
+        // Event Listeners
+        playPauseButton.addEventListener('click', togglePlayPause);
+        progressContainer.addEventListener('click', seekAudio);
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('loadedmetadata', updateProgress);
+        skipBackwardButton.addEventListener('click', () => skipAudio(-30));
+        skipForwardButton.addEventListener('click', () => skipAudio(30));
+        previousChapterButton.addEventListener('click', () => loadChapter(getPreviousChapterIndex()));
+        nextChapterButton.addEventListener('click', () => loadChapter(getNextChapterIndex()));
+        playbackRateSelect.addEventListener('change', () => {
+            audio.playbackRate = playbackRateSelect.value;
+        });
+        chaptersButton.addEventListener('click', () => showModal(chaptersModal));
+        chaptersModal.querySelector('.close').addEventListener('click', () => hideModal(chaptersModal));
+        timerButton.addEventListener('click', () => showModal(timerModal));
+        timerModal.querySelector('.close').addEventListener('click', () => hideModal(timerModal));
+        timerModal.querySelectorAll('.timer-option').forEach(button => {
+            button.addEventListener('click', () => setSleepTimer(parseInt(button.dataset.time)));
+        });
+        document.getElementById('cancelTimer').addEventListener('click', () => {
+            clearTimeout(sleepTimerID);
+            sleepTimerID = null;
+            timerEndTime = null;
+            updateTimerCountdown();
+            hideModal(timerModal);
+        });
+        synopsisButton.addEventListener('click', () => showModal(synopsisModal));
+        synopsisModal.querySelector('.close').addEventListener('click', () => hideModal(synopsisModal));
+        volumeButton.addEventListener('click', () => showModal(volumeModal));
+        volumeModal.querySelector('.close').addEventListener('click', () => hideModal(volumeModal));
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+        });
+        shuffleButton.addEventListener('click', toggleShuffleMode);
+        audio.addEventListener('ended', () => {
+            loadChapter(getNextChapterIndex());
+        });
+
+        loadChapter(0);  //Added to start playback on load
+        updateChaptersList();
+    });
+</script>
+</body>
+</html>
