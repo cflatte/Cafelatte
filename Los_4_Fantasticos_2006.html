@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Los 4 Fantásticos 2006</title>
+  <style>
+    :root{
+      --bg: #000;
+      --panel: rgba(15, 15, 15, 0.74);
+      --text: #f3f3f3;
+      --muted: #b9b9b9;
+      --accent: #00d4ff;
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 0 25px rgba(0, 0, 0, 0.45);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .menu-toggle {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1200;
+      width: 52px;
+      height: 52px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(20, 20, 20, 0.78);
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .menu-toggle:hover {
+      transform: scale(1.05);
+      background: rgba(35, 35, 35, 0.9);
+      border-color: rgba(255,255,255,0.24);
+    }
+    .menu-toggle span {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      max-width: 88vw;
+      height: 100vh;
+      z-index: 1100;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      box-shadow: 10px 0 35px rgba(0,0,0,.38);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transform: translateX(-100%);
+      transition: transform .28s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar-header {
+      padding: 20px 18px 16px 88px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      min-height: 96px;
+    }
+    .sidebar-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .chapter-list {
+      list-style: none;
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .chapter-list::-webkit-scrollbar {
+      width: 10px;
+    }
+    .chapter-list::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+    }
+    .chapter-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+    }
+    .chapter-item {
+      margin-bottom: 10px;
+    }
+    .chapter-button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 14px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .chapter-button:hover {
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.16);
+      transform: translateX(2px);
+    }
+    .chapter-button.active {
+      background: rgba(0, 212, 255, 0.16);
+      border-color: rgba(0, 212, 255, 0.42);
+      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.1) inset;
+    }
+    .chapter-name {
+      font-size: 15px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .chapter-note {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      line-height: 1.35;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .page {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 48px);
+    }
+    .player-wrapper {
+      width: 100%;
+    }
+    .player-card {
+      width: 100%;
+      background: #111;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .player-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .player-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .player-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      min-width: 110px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+    }
+    .nav-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.24);
+    }
+    .nav-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .video-stage {
+      position: relative;
+      width: 100%;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      min-height: 240px;
+    }
+    .video-stage iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+      .menu-toggle {
+        top: 12px;
+        left: 12px;
+        width: 48px;
+        height: 48px;
+      }
+      .sidebar-header {
+        padding: 18px 16px 14px 78px;
+        min-height: 88px;
+      }
+      .player-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .player-title {
+        font-size: 16px;
+      }
+      .player-nav {
+        width: 100%;
+      }
+      .nav-button {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú de capítulos" title="Abrir menú">
+    <span>☰</span>
+  </button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Capítulos</div>
+      <div class="sidebar-subtitle">LOS 4 FANTÁSTICOS 2006</div>
+    </div>
+    <ul class="chapter-list" id="chapterList"></ul>
+  </aside>
+
+  <div class="overlay" id="overlay"></div>
+
+  <main class="page">
+    <section class="player-wrapper">
+      <div class="player-card">
+        <div class="player-topbar">
+          <div class="player-title" id="currentTitle">Capítulo 1</div>
+          <div class="player-nav">
+            <button class="nav-button" id="prevButton" type="button">Anterior</button>
+            <button class="nav-button" id="nextButton" type="button">Siguiente</button>
+          </div>
+        </div>
+        <div class="video-stage" id="playerHost"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const episodes = [
+      { title: "Capítulo 1", note: "Trial by Fire", src: "https://ok.ru/videoembed/1429856324169?nochat=1" },
+      { title: "Capítulo 2", note: "Doomed", src: "https://ok.ru/videoembed/1429856651849?nochat=1" },
+      { title: "Capítulo 3", note: "Doomsday", src: "https://ok.ru/videoembed/1429856717385?nochat=1" },
+      { title: "Capítulo 4", note: "Hard Knocks", src: "https://ok.ru/videoembed/1429856586313?nochat=1" },
+      { title: "Capítulo 5", note: "My Neighbor Was a Skrull", src: "https://ok.ru/videoembed/1429856520777?nochat=1" },
+      { title: "Capítulo 6", note: "World's Tiniest Heroes", src: "https://ok.ru/videoembed/1429856258633?nochat=1" },
+      { title: "Capítulo 7", note: "Zoned Out", src: "https://ok.ru/videoembed/1429856782921?nochat=1" },
+      { title: "Capítulo 8", note: "Imperius Rex", src: "https://ok.ru/videoembed/1429855996489?nochat=1" },
+      { title: "Capítulo 9", note: "Puppet Master", src: "https://ok.ru/videoembed/1429856062025?nochat=1" },
+      { title: "Capítulo 10", note: "Impossible", src: "https://ok.ru/videoembed/1429856455241?nochat=1" },
+      { title: "Capítulo 11", note: "Bait and Switch", src: "https://ok.ru/videoembed/1429856127561?nochat=1" },
+      { title: "Capítulo 12", note: "Annihilation", src: "https://ok.ru/videoembed/1429856193097?nochat=1" },
+      { title: "Capítulo 13", note: "De-Mole-Ition", src: "https://ok.ru/videoembed/1429856389705?nochat=1" },
+      { title: "Capítulo 14", note: "Revenge of the Skrulls", src: "https://ok.ru/videoembed/1429856979529?nochat=1" },
+      { title: "Capítulo 15", note: "Molehattan", src: "https://ok.ru/videoembed/1429856848457?nochat=1" },
+      { title: "Capítulo 16", note: "Strings", src: "https://ok.ru/videoembed/1429857045065?nochat=1" },
+      { title: "Capítulo 17", note: "Doomsday Plus One", src: "https://ok.ru/videoembed/1429857241673?nochat=1" },
+      { title: "Capítulo 18", note: "The Cure", src: "https://ok.ru/videoembed/1429857110601?nochat=1" },
+      { title: "Capítulo 19", note: "Frightful", src: "https://ok.ru/videoembed/1429857372745?nochat=1" },
+      { title: "Capítulo 20", note: "Out of Time", src: "https://ok.ru/videoembed/1429857503817?nochat=1" },
+      { title: "Capítulo 21", note: "Atlantis Attacks", src: "https://ok.ru/videoembed/1429857634889?nochat=1" },
+      { title: "Capítulo 22", note: "Shell Games", src: "https://ok.ru/videoembed/1429857569353?nochat=1" },
+      { title: "Capítulo 23", note: "Johnny Storm and the Potion of Fire", src: "https://ok.ru/videoembed/1429857438281?nochat=1" },
+      { title: "Capítulo 24", note: "Contest of Champions", src: "https://ok.ru/videoembed/1429857307209?nochat=1" },
+      { title: "Capítulo 25", note: "Doom's Word is Law", src: "https://ok.ru/videoembed/1429856913993?nochat=1" },
+      { title: "Capítulo 26", note: "Scavenger Hunt", src: "https://ok.ru/videoembed/1429857176137?nochat=1" }
+    ];
+
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const menuToggle = document.getElementById("menuToggle");
+    const chapterList = document.getElementById("chapterList");
+    const currentTitle = document.getElementById("currentTitle");
+    const playerHost = document.getElementById("playerHost");
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+
+    let activeIndex = 0;
+
+    function toggleMenu(forceOpen) {
+      const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : !sidebar.classList.contains("open");
+      sidebar.classList.toggle("open", shouldOpen);
+      overlay.classList.toggle("show", shouldOpen);
+    }
+
+    function closeMenuOnMobile() {
+      if (window.innerWidth <= 1024) {
+        toggleMenu(false);
+      }
+    }
+
+    function getPreviousIndex(index) {
+      return index > 0 ? index - 1 : -1;
+    }
+
+    function getNextIndex(index) {
+      return index < episodes.length - 1 ? index + 1 : -1;
+    }
+
+    function updateNavButtons() {
+      prevButton.disabled = getPreviousIndex(activeIndex) === -1;
+      nextButton.disabled = getNextIndex(activeIndex) === -1;
+    }
+
+    function goToEpisode(index) {
+      if (index < 0 || index >= episodes.length) return;
+      activeIndex = index;
+      renderMenu();
+      loadEpisode(episodes[index]);
+      updateNavButtons();
+    }
+
+    menuToggle.addEventListener("click", () => toggleMenu());
+    overlay.addEventListener("click", () => toggleMenu(false));
+
+    prevButton.addEventListener("click", () => {
+      const prevIndex = getPreviousIndex(activeIndex);
+      if (prevIndex !== -1) {
+        goToEpisode(prevIndex);
+      }
+    });
+
+    nextButton.addEventListener("click", () => {
+      const nextIndex = getNextIndex(activeIndex);
+      if (nextIndex !== -1) {
+        goToEpisode(nextIndex);
+      }
+    });
+
+    function renderMenu() {
+      chapterList.innerHTML = "";
+      episodes.forEach((episode, index) => {
+        const li = document.createElement("li");
+        li.className = "chapter-item";
+
+        const btn = document.createElement("button");
+        btn.className = "chapter-button" + (index === activeIndex ? " active" : "");
+        btn.type = "button";
+
+        btn.innerHTML = `
+          <span class="chapter-name">${episode.title}</span>
+          <span class="chapter-note">${episode.note}</span>
+        `;
+
+        btn.addEventListener("click", () => {
+          goToEpisode(index);
+          closeMenuOnMobile();
+        });
+
+        li.appendChild(btn);
+        chapterList.appendChild(li);
+      });
+    }
+
+    function loadEpisode(episode) {
+      currentTitle.textContent = `${episode.title} · ${episode.note}`;
+      playerHost.innerHTML = `
+        <iframe
+          src="${episode.src}"
+          frameborder="0"
+          allow="autoplay"
+          allowfullscreen>
+        </iframe>
+      `;
+    }
+
+    renderMenu();
+    updateNavButtons();
+    loadEpisode(episodes[0]);
+  </script>
+</body>
+</html>
