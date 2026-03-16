@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafelatte Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .player-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .coffee-btn, .volume-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .coffee-btn svg, .volume-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #666;
+        }
+        .logo {
+            width: 40px;
+            height: 40px;
+        }
+        .cover-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .book-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .book-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .book-author {
+            font-size: 1em;
+            color: #666;
+        }
+        .chapter-info {
+            font-size: 0.9em;
+            color: #888;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #e0e0e0;
+            margin-bottom: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #ff6600;
+            position: absolute;
+        }
+        .progress-handle {
+            width: 12px;
+            height: 12px;
+            background-color: #ff6600;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+        }
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .control-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .control-btn svg {
+            width: 30px;
+            height: 30px;
+            fill: #666;
+        }
+        .play-pause {
+            width: 60px;
+            height: 60px;
+            background-color: #ff6600;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .play-pause svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+        .playback-speed {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .additional-controls {
+            display: flex;
+            justify-content: space-between;
+        }
+        .additional-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .additional-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #666;
+            margin-bottom: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: 15% auto;
+            padding: 20px;
+            border: none;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .chapter-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .chapter-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chapter-list li:last-child {
+            border-bottom: none;
+        }
+        .chapter-list li:hover {
+            background-color: #f0f0f0;
+        }
+        .chapter-list li.active {
+            background-color: #fff0e6;
+            font-weight: bold;
+        }
+        .chapter-duration {
+            color: #888;
+            font-size: 0.9em;
+            margin-left: auto;
+            padding-left: 10px;
+        }
+        .bookmark-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .bookmark-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bookmark-list li:last-child {
+            border-bottom: none;
+        }
+        .delete-bookmark {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .timer-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .timer-option {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .timer-option:hover {
+            background-color: #e0e0e0;
+        }
+        #cancelTimer {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .volume-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .timer-countdown {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <a href="https://buymeacoffee.com/virtualiabooks" target="_blank" class="coffee-btn" aria-label="Comprar un café">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4v-2z"/>
+                </svg>
+            </a>
+            <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_225,h_225,c_lfill/https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Fglide-prod.appspot.com%2Fo%2Ficon-images%252Fanonymous-a4c7037f-ab92-4c61-b72d-ab53b2d885f1.png%3Falt%3Dmedia%26token%3D0af07a89-ed22-49cc-980f-5110cae07281" alt="Logo" class="logo">
+            <button class="volume-btn" id="volumeButton" aria-label="Ajustar volumen">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+            </button>
+        </div>
+        <img id="audiobook-cover" class="cover-image" src="" alt="Portada del audiolibro">
+        <div class="book-info">
+            <div class="book-title">50 sombras más obscuras</div>
+            <div class="book-author">E.L. James</div>
+        </div>
+        <div class="chapter-info" id="chapterInfo">Capítulo 1</div>
+        <div class="progress-bar" id="progressContainer">
+            <div class="progress" id="progressBar"></div>
+            <div class="progress-handle" id="progressHandle"></div>
+        </div>
+        <div class="time-info">
+            <span id="currentTime">00:00</span>
+            <span id="totalTime">00:00</span>
+            <span id="remainingTime">-00:00</span>
+        </div>
+        <div class="controls">
+            <button class="control-btn" id="previousChapter" aria-label="Capítulo anterior">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="skipBackward" aria-label="Retroceder 30 segundos">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                </svg>
+            </button>
+            <button class="control-btn play-pause" id="playPause" aria-label="Reproducir o Pausar">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="skipForward" aria-label="Avanzar 30 segundos">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="nextChapter" aria-label="Capítulo siguiente">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="playback-speed">
+            <select id="playbackRate">
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+            </select>
+        </div>
+        <div class="additional-controls">
+            <button class="additional-btn" id="chaptersButton" aria-label="Capítulos">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                </svg>
+                Capítulos
+            </button>
+            <button class="additional-btn" id="bookmarkButton" aria-label="Marcador">
+                <svg viewBox="0 0 24 24">
+                    <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7  18V5h10v13z"/>
+                </svg>
+                Marcador
+            </button>
+            <button class="additional-btn" id="timerButton" aria-label="Temporizador de sueño">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                </svg>
+                Temporizador
+            </button>
+            <button class="additional-btn" id="synopsisButton" aria-label="Sinopsis">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                </svg>
+                Sinopsis
+            </button>
+        </div>
+        <div class="timer-countdown" id="timerCountdown"></div>
+    </div>
+
+    <!-- Modal para Capítulos -->
+    <div id="chaptersModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Capítulos</h2>
+            <ul id="chaptersList" class="chapter-list"></ul>
+        </div>
+    </div>
+
+    <!-- Modal para Marcadores -->
+    <div id="bookmarksModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Marcadores</h2>
+            <button id="addBookmark">Añadir marcador</button>
+            <ul id="bookmarksList" class="bookmark-list"></ul>
+        </div>
+    </div>
+
+    <!-- Modal para Temporizador -->
+    <div id="timerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Temporizador de sueño</h2>
+            <div class="timer-options">
+                <button class="timer-option" data-time="15">15 min</button>
+                <button class="timer-option" data-time="30">30 min</button>
+                <button class="timer-option" data-time="45">45 min</button>
+                <button class="timer-option" data-time="60">60 min</button>
+            </div>
+            <button id="cancelTimer">Cancelar temporizador</button>
+        </div>
+    </div>
+
+    <!-- Modal para Sinopsis -->
+    <div id="synopsisModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Sinopsis</h2>
+            <p id="synopsisText">
+                Intimidada por las peculiares prácticas eróticas y los oscuros secretos del atractivo y atormentado empresario Christian Grey, Anastasia Steele decide romper con él y embarcarse en una nueva carrera profesional en una editorial de Seattle. Pero el deseo por Christian todavía domina cada uno de sus pensamientos, y cuando finalmente él le propone retomar su aventura, Ana no puede resistirse. Reanudan entonces su tórrida y sensual relación, pero mientras Christian lucha contra sus propios demonios del pasado, Ana debe enfrentarse a la ira y la envidia de las mujeres que la precedieron, y tomar la decisión más importante de su vida.
+        </div>
+    </div>
+
+    <!-- Modal para Volumen -->
+    <div id="volumeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ajustar Volumen</h2>
+            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="1">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const audio = new Audio();
+            const playPauseButton = document.getElementById('playPause');
+            const progressBar = document.getElementById('progressBar');
+            const progressHandle = document.getElementById('progressHandle');
+            const progressContainer = document.getElementById('progressContainer');
+            const currentTimeDisplay = document.getElementById('currentTime');
+            const totalTimeDisplay = document.getElementById('totalTime');
+            const remainingTimeDisplay = document.getElementById('remainingTime');
+            const skipBackwardButton = document.getElementById('skipBackward');
+            const skipForwardButton = document.getElementById('skipForward');
+            const previousChapterButton = document.getElementById('previousChapter');
+            const nextChapterButton = document.getElementById('nextChapter');
+            const playbackRateSelect = document.getElementById('playbackRate');
+            const chaptersButton = document.getElementById('chaptersButton');
+            const chaptersModal = document.getElementById('chaptersModal');
+            const chaptersList = document.getElementById('chaptersList');
+            const bookmarkButton = document.getElementById('bookmarkButton');
+            const bookmarksModal = document.getElementById('bookmarksModal');
+            const addBookmarkButton = document.getElementById('addBookmark');
+            const bookmarksList = document.getElementById('bookmarksList');
+            const timerButton = document.getElementById('timerButton');
+            const timerModal = document.getElementById('timerModal');
+            const synopsisButton = document.getElementById('synopsisButton');
+            const synopsisModal = document.getElementById('synopsisModal');
+            const volumeButton = document.getElementById('volumeButton');
+            const volumeModal = document.getElementById('volumeModal');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const timerCountdown = document.getElementById('timerCountdown');
+
+            let chapters = [
+                { title: "Título", url: "https://www.googleapis.com/drive/v3/files/1Twy_8_5X56MeyXQmSZAL6VJuDuVKFwuE?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Nota Contracubierta", url: "https://www.googleapis.com/drive/v3/files/1ox3mofr8dxe_dOE0R4m7pZ5WuhvZcOlo?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Nota Solapa", url: "https://www.googleapis.com/drive/v3/files/1LOw4eFjJjdDFUAXC6kjJI6IQxecaf4iL?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Prólogo", url: "https://www.googleapis.com/drive/v3/files/1Tp03vAro9Xg79aLgsy5LOJYMfK7-KqIk?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 1", url: "https://www.googleapis.com/drive/v3/files/1QyZagdpoKUvi97HNpp-3UxTuJrjTaJFt?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 2", url: "https://www.googleapis.com/drive/v3/files/1WeacX4TY-mOYAj38kezSRWdL6333zvxv?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 3", url: "https://www.googleapis.com/drive/v3/files/1TObRf-wNVZ2FG7xeu2vWixu6MXVM6X7A?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 4", url: "https://www.googleapis.com/drive/v3/files/1p8Y3n4j2c3X1oq9Y8mA4XNqmPDcCZH48?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 5", url: "https://www.googleapis.com/drive/v3/files/1H3IextXXabXn9OFMI0d8NQ6havtkwFL1?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 6", url: "https://www.googleapis.com/drive/v3/files/1kkEvLQQevix3ccbpL8kV_u5KfVxcf-en?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 7", url: "https://www.googleapis.com/drive/v3/files/1V6uvAVBdDrurTu3ZLwiuQwkJsVOfZ4Ny?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 8", url: "https://www.googleapis.com/drive/v3/files/1APhb9eplCe_FVDZkp1pRay0oK4JHdmqY?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 9", url: "https://www.googleapis.com/drive/v3/files/1etKcNm7a5BsBRbMUtDFqVecR5V2xLZA0?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 10", url: "https://www.googleapis.com/drive/v3/files/1kpcLEQqe_0NbX0y5g-Whu2Uk8aaSUvIC?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 11", url: "https://www.googleapis.com/drive/v3/files/1kUn0Yt7bHF3z1A_Kin_CXajpZm1BDQPx?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 12", url: "https://www.googleapis.com/drive/v3/files/145HjeM2OBSrbRlhU8iDDQtB0FZTkH7LP?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 13", url: "https://www.googleapis.com/drive/v3/files/1i6XGkrHV5blHO8NEeeAJjOwhGGaIt7TT?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 14", url: "https://www.googleapis.com/drive/v3/files/1x_W6NeBTEaMaQVlqaTfEJsbHlJrIBdmn?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 15", url: "https://www.googleapis.com/drive/v3/files/1q2lZbG2SlsSgK-bVzkVp8hF127rHdg2k?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 16", url: "https://www.googleapis.com/drive/v3/files/1EYRb2CEnaoTKyi8Yf8lIzzMG80g9NCXt?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 17", url: "https://www.googleapis.com/drive/v3/files/1RHPfTdfSRw2Vk-1sPB0GlSz5P6ciC3sD?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 18", url: "https://www.googleapis.com/drive/v3/files/1FjY9IvYE-4xgwEgh1_tjC38lc2Isvb63?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 19", url: "https://www.googleapis.com/drive/v3/files/1TU4i-J0Br6tZj88ZGH77c43jlYCkW2za?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 20", url: "https://www.googleapis.com/drive/v3/files/1D7S_Jqsfh2HTIXMREsmSTZUPXBAzrUVt?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 21", url: "https://www.googleapis.com/drive/v3/files/1bLBI6OSWeJp8ZKP5dJ1ZHaZgDE3O3v3u?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                { title: "Capítulo 22", url: "https://www.googleapis.com/drive/v3/files/1SEK8g3h5Hc5S7lmO3YMcuuANLKpZ3fwI?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 2400 },
+                { title: "Capítulo 23", url: "https://www.googleapis.com/drive/v3/files/1l7-AnpYzohqRRhwijJ7nqJfkV35EcoPi?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 3000 },
+                { title: "Capítulo 24", url: "https://www.googleapis.com/drive/v3/files/1KlbFSWAgQtViv_Rs6oI-XK404-g4MMz7?alt=media&key=AIzaSyCU2XPnp5F607Uryo9fS6_C2fMBBM11O00", duration: 1800 },
+                
+                // Añade más capítulos aquí
+            ];
+
+            let currentChapterIndex = 0;
+            let bookmarks = [];
+            let sleepTimerID = null;
+            let timerEndTime = null;
+
+            function loadChapter(index) {
+                if (index >= 0 && index < chapters.length) {
+                    currentChapterIndex = index;
+                    audio.src = chapters[currentChapterIndex].url;
+                    document.getElementById('chapterInfo').textContent = chapters[currentChapterIndex].title;
+                    audio.load();
+                    audio.play();
+                    updatePlayPauseButton();
+                    updateChaptersList();
+                }
+            }
+
+            function togglePlayPause() {
+                if (audio.paused) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+                updatePlayPauseButton();
+            }
+
+            function updatePlayPauseButton() {
+                playPauseButton.innerHTML = audio.paused ? 
+                    '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' :
+                    '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+            }
+
+            function updateProgress() {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressHandle.style.left = `${progress}%`;
+                currentTimeDisplay.textContent = formatTime(audio.currentTime);
+                totalTimeDisplay.textContent = formatTime(audio.duration);
+                remainingTimeDisplay.textContent = `-${formatTime(audio.duration - audio.currentTime)}`;
+            }
+
+            function formatTime(time) {
+                if (isNaN(time)) return "00:00:00";
+                const hours = Math.floor(time / 3600);
+                const minutes = Math.floor((time % 3600) / 60);
+                const seconds = Math.floor(time % 60);
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            function seekAudio(event) {
+                const rect = progressContainer.getBoundingClientRect();
+                const pos = (event.clientX - rect.left) / rect.width;
+                audio.currentTime = pos * audio.duration;
+            }
+
+            function skipAudio(seconds) {
+                audio.currentTime += seconds;
+            }
+
+            function updateChaptersList() {
+                chaptersList.innerHTML = '';
+                chapters.forEach((chapter, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${chapter.title}</span>
+                        <span class="chapter-duration">${formatTime(chapter.duration)}</span>
+                    `;
+                    li.addEventListener('click', () => {
+                        loadChapter(index);
+                        hideModal(chaptersModal);
+                    });
+                    if (index === currentChapterIndex) {
+                        li.classList.add('active');
+                    }
+                    chaptersList.appendChild(li);
+                });
+            }
+
+            function addBookmark() {
+                const currentTime = audio.currentTime;
+                const chapterTitle = chapters[currentChapterIndex].title;
+                bookmarks.push({ time: currentTime, chapter: chapterTitle });
+                renderBookmarks();
+            }
+
+            function renderBookmarks() {
+                bookmarksList.innerHTML = '';
+                bookmarks.forEach((bookmark, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${bookmark.chapter} - ${formatTime(bookmark.time)}</span>
+                        <button class="delete-bookmark" data-index="${index}">Eliminar</button>
+                    `;
+                    li.querySelector('span').addEventListener('click', () => {
+                        const chapterIndex = chapters.findIndex(chapter => chapter.title === bookmark.chapter);
+                        if (chapterIndex !== -1) {
+                            loadChapter(chapterIndex);
+                            audio.currentTime = bookmark.time;
+                        }
+                        hideModal(bookmarksModal);
+                    });
+                    li.querySelector('.delete-bookmark').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        bookmarks.splice(index, 1);
+                        renderBookmarks();
+                    });
+                    bookmarksList.appendChild(li);
+                });
+            }
+
+            function setSleepTimer(minutes) {
+                if (sleepTimerID) {
+                    clearTimeout(sleepTimerID);
+                }
+                timerEndTime = new Date().getTime() + minutes * 60 * 1000;
+                updateTimerCountdown();
+                sleepTimerID = setTimeout(() => {
+                    audio.pause();
+                    updatePlayPauseButton();
+                    sleepTimerID = null;
+                    timerEndTime = null;
+                    updateTimerCountdown();
+                }, minutes * 60 * 1000);
+                hideModal(timerModal);
+            }
+
+            function updateTimerCountdown() {
+                if (timerEndTime) {
+                    const now = new Date().getTime();
+                    const distance = timerEndTime - now;
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    timerCountdown.textContent = `Temporizador: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    timerCountdown.style.display = 'block';
+                    setTimeout(updateTimerCountdown, 1000);
+                } else {
+                    timerCountdown.textContent = '';
+                    timerCountdown.style.display = 'none';
+                }
+            }
+
+            function showModal(modal) {
+                modal.style.display = 'block';
+            }
+
+            function hideModal(modal) {
+                modal.style.display = 'none';
+            }
+
+            playPauseButton.addEventListener('click', togglePlayPause);
+            progressContainer.addEventListener('click', seekAudio);
+            audio.addEventListener('timeupdate', updateProgress);
+            audio.addEventListener('loadedmetadata', updateProgress);
+            skipBackwardButton.addEventListener('click', () => skipAudio(-30));
+            skipForwardButton.addEventListener('click', () => skipAudio(30));
+            previousChapterButton.addEventListener('click', () => loadChapter(currentChapterIndex - 1));
+            nextChapterButton.addEventListener('click', () => loadChapter(currentChapterIndex + 1));
+            playbackRateSelect.addEventListener('change', (e) => {
+                audio.playbackRate = parseFloat(e.target.value);
+            });
+            chaptersButton.addEventListener('click', () => {
+                updateChaptersList();
+                showModal(chaptersModal);
+            });
+            bookmarkButton.addEventListener('click', () => showModal(bookmarksModal));
+            addBookmarkButton.addEventListener('click', addBookmark);
+            timerButton.addEventListener('click', () => showModal(timerModal));
+            synopsisButton.addEventListener('click', () => showModal(synopsisModal));
+            volumeButton.addEventListener('click', () => showModal(volumeModal));
+            volumeSlider.addEventListener('input', (e) => {
+                audio.volume = e.target.value;
+            });
+
+            document.querySelectorAll('.timer-option').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const minutes = parseInt(e.target.getAttribute('data-time'));
+                    setSleepTimer(minutes);
+                });
+            });
+
+            document.getElementById('cancelTimer').addEventListener('click', () => {
+                if (sleepTimerID) {
+                    clearTimeout(sleepTimerID);
+                    sleepTimerID = null;
+                    timerEndTime = null;
+                    updateTimerCountdown();
+                }
+                hideModal(timerModal);
+            });
+
+            document.querySelectorAll('.modal .close').forEach(closeButton => {
+                closeButton.addEventListener('click', () => {
+                    hideModal(closeButton.closest('.modal'));
+                });
+            });
+
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        hideModal(modal);
+                    }
+                });
+            });
+
+            audio.addEventListener('ended', () => {
+                if (currentChapterIndex < chapters.length - 1) {
+                    loadChapter(currentChapterIndex + 1);
+                } else {
+                    audio.pause();
+                    updatePlayPauseButton();
+                }
+            });
+
+            // Inicialización
+            loadChapter(0);
+            updateChaptersList();
+            renderBookmarks();
+        });
+    </script>
+</body>
+</html>
