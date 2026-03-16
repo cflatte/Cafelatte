@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Night Warriors - Darkstalkers' Revenge (950403 Brazil) — RetroGames</title>
+  <style>
+    html, body{
+      margin:0;
+      width:100%;
+      height:100%;
+      background:#000;
+      overflow:hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#fff;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Contenedor centrado y responsivo */
+    .wrap{
+      width:100%;
+      height:100vh;   /* fallback */
+      height:100dvh;  /* móviles */
+      display:grid;
+      place-items:center;
+      background:#000;
+      position:relative;
+    }
+
+    /* Mantiene proporción 4:3 y nunca recorta (letterbox si hace falta) */
+    .frame{
+      width: min(100vw, calc(100dvh * (4 / 3)));
+      height: min(100dvh, calc(100vw * (3 / 4)));
+      aspect-ratio: 4 / 3;
+      background:#000;
+      position:relative;
+      overflow:hidden;
+    }
+
+    iframe{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      background:#000;
+    }
+
+    /* Overlay: “fullscreen por defecto” (requiere 1 toque/clic por seguridad del navegador) */
+    .fs-overlay{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.35), rgba(0,0,0,0.90));
+      z-index:9999;
+      cursor:pointer;
+    }
+
+    .fs-card{
+      max-width:min(92vw, 520px);
+      padding:16px 18px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.65);
+      border-radius:14px;
+      backdrop-filter: blur(8px);
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .fs-card strong{
+      font-size:14px;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+    }
+
+    .fs-card p{
+      margin:0;
+      font-size:13px;
+      opacity:0.9;
+      line-height:1.35;
+    }
+
+    .fs-btn{
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:800;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      min-height:44px; /* tap target móvil */
+    }
+    .fs-btn:hover{ background: rgba(255,255,255,0.10); }
+    .fs-btn:active{ transform: translateY(1px); }
+
+    .note{
+      font-size:12px;
+      opacity:0.75;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="stage">
+    <div class="frame">
+      <iframe
+        id="gameFrame"
+        src="https://www.retrogames.cc/embed/9325-night-warriors-darkstalkers-revenge-950403-brazil.html"
+        frameborder="0"
+        scrolling="no"
+        allow="fullscreen"
+        allowfullscreen="true"
+        webkitallowfullscreen="true"
+        mozallowfullscreen="true">
+      </iframe>
+    </div>
+
+    <!-- Fullscreen nativo no puede activarse solo; requiere interacción del usuario -->
+    <div class="fs-overlay" id="fsOverlay">
+      <div class="fs-card">
+        <strong>INSTRUCCIONES</strong>
+        <p>Tap en Fullscreen, Play Now, "X" para cerrar publicidad.</p>
+        <button class="fs-btn" id="fsBtn" type="button">Fullscreen</button>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const frame = document.getElementById('gameFrame');
+    const fsOverlay = document.getElementById('fsOverlay');
+    const fsBtn = document.getElementById('fsBtn');
+
+    function isFullscreen() {
+      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    }
+
+    async function requestFullscreenNative() {
+      try {
+        // Intentamos fullscreen del iframe (lo más parecido al “nativo del frame”)
+        if (frame.requestFullscreen) await frame.requestFullscreen();
+        else if (frame.webkitRequestFullscreen) await frame.webkitRequestFullscreen();
+        else if (stage.requestFullscreen) await stage.requestFullscreen();
+        else if (stage.webkitRequestFullscreen) await stage.webkitRequestFullscreen();
+      } catch (e) {
+        console.warn('Fullscreen error:', e);
+        return;
+      }
+      if (isFullscreen()) fsOverlay.style.display = 'none';
+    }
+
+    fsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      requestFullscreenNative();
+    });
+
+    // Tap en cualquier parte del overlay también intenta
+    fsOverlay.addEventListener('click', () => requestFullscreenNative());
+
+    function onFsChange() {
+      fsOverlay.style.display = isFullscreen() ? 'none' : 'grid';
+    }
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+  </script>
+</body>
+</html>
