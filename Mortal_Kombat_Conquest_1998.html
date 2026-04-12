@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%20%20%3ClinearGradient%20id='fire'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%20%20%20%20%3Cstop%20offset='0%'%20stop-color='%23ffd56a'/%3E%20%20%20%20%3Cstop%20offset='100%'%20stop-color='%23d49a00'/%3E%20%20%3C/linearGradient%3E%3C/defs%3E%3Ccircle%20cx='32'%20cy='32'%20r='28'%20fill='%230d0605'%20stroke='url(%23fire)'%20stroke-width='4'/%3E%3Cpath%20d='M44%2015c-5%200-10%203-13%207-3%204-5%209-10%2010%202%200%205%200%207%201-3%201-5%204-6%207%202-1%205-2%208-1-2%203-2%206-1%209%202-2%204-3%207-4%203-1%205-2%207-5-3%201-7%201-9-2%205%201%2011-2%2014-7-2%201-4%201-6%201%204-2%206-6%207-10-2%201-4%202-5%202%201-2%201-5%200-8Z'%20fill='url(%23fire)'/%3E%3C/svg%3E" />
+  <title>Mortal Kombat Conquest (1998)</title>
+  <style>
+    :root{
+      --bg: #080403;
+      --bg2: #160707;
+      --panel: rgba(22, 8, 7, 0.86);
+      --panel-strong: rgba(27, 9, 8, 0.94);
+      --text: #f7efe7;
+      --muted: #d4beb0;
+      --accent: #d91c0f;
+      --accent-2: #ffbe3b;
+      --border: rgba(255,190,59,0.20);
+      --shadow: 0 0 36px rgba(0, 0, 0, 0.52);
+      --ember: 0 0 24px rgba(217,28,15,0.22);
+      --gold-glow: 0 0 18px rgba(255,190,59,0.18);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(217,28,15,0.18), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,190,59,0.12), transparent 20%),
+        linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,190,59,0.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 75% 15%, rgba(217,28,15,0.08) 0 2px, transparent 3px),
+        radial-gradient(circle at 65% 80%, rgba(255,190,59,0.05) 0 2px, transparent 3px),
+        radial-gradient(circle at 30% 75%, rgba(217,28,15,0.06) 0 2px, transparent 3px);
+      background-size: 220px 220px;
+      opacity: .85;
+    }
+    .menu-toggle {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1200;
+      width: 54px;
+      height: 54px;
+      border: 1px solid rgba(255,190,59,0.34);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(45,13,10,0.96), rgba(19,7,6,0.94));
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: var(--shadow), var(--gold-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .menu-toggle:hover {
+      transform: scale(1.05);
+      background: linear-gradient(180deg, rgba(70,19,15,0.98), rgba(25,8,7,0.96));
+      border-color: rgba(255,190,59,0.56);
+    }
+    .menu-toggle span { font-size: 24px; line-height: 1; }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 340px;
+      max-width: 88vw;
+      height: 100vh;
+      z-index: 1100;
+      background: linear-gradient(180deg, rgba(28,10,8,0.98), rgba(14,5,5,0.98));
+      border-right: 1px solid rgba(255,190,59,0.18);
+      box-shadow: 10px 0 40px rgba(0,0,0,.44);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transform: translateX(-100%);
+      transition: transform .28s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header {
+      padding: 22px 18px 16px 88px;
+      border-bottom: 1px solid rgba(255,190,59,0.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      min-height: 108px;
+      position: relative;
+    }
+    .sidebar-header::before {
+      content: "MK";
+      position: absolute;
+      left: 22px;
+      top: 18px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #1a0807;
+      background: linear-gradient(180deg, #ffd56a, #d49a00);
+      box-shadow: 0 0 22px rgba(255,190,59,0.22);
+    }
+    .sidebar-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+      letter-spacing: .8px;
+    }
+    .chapter-list {
+      list-style: none;
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .chapter-list::-webkit-scrollbar { width: 10px; }
+    .chapter-list::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+    }
+    .chapter-list::-webkit-scrollbar-thumb {
+      background: rgba(255,190,59,0.20);
+      border-radius: 999px;
+    }
+    .chapter-item { margin-bottom: 10px; }
+    .chapter-button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      color: var(--text);
+      padding: 14px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .chapter-button:hover {
+      background: linear-gradient(180deg, rgba(217,28,15,0.16), rgba(255,190,59,0.08));
+      border-color: rgba(217,28,15,0.28);
+      transform: translateX(2px);
+      box-shadow: var(--ember);
+    }
+    .chapter-button.active {
+      background: linear-gradient(180deg, rgba(217,28,15,0.24), rgba(255,190,59,0.12));
+      border-color: rgba(255,190,59,0.38);
+      box-shadow: inset 0 0 0 1px rgba(255,190,59,0.12), var(--gold-glow);
+    }
+    .chapter-name {
+      font-size: 15px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .chapter-note {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      line-height: 1.35;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      background: rgba(0,0,0,0.52);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .page {
+      width: 100%;
+      max-width: 1180px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 48px);
+      padding-top: 34px;
+    }
+    .player-wrapper { width: 100%; }
+    .player-card {
+      width: 100%;
+      background: linear-gradient(180deg, rgba(21,7,6,0.98), rgba(9,4,4,0.98));
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: var(--shadow), var(--ember);
+      border: 1px solid rgba(255,190,59,0.16);
+      position: relative;
+    }
+    .player-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(217,28,15,0.10), transparent 35%, rgba(255,190,59,0.08));
+    }
+    .player-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px 16px 76px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+      border-bottom: 1px solid rgba(255,190,59,0.10);
+      position: relative;
+      z-index: 1;
+    }
+    .player-title {
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: .5px;
+      text-shadow: 0 0 14px rgba(217,28,15,0.20);
+    }
+    .player-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      min-width: 110px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,190,59,0.18);
+      background: linear-gradient(180deg, rgba(46,14,11,0.92), rgba(22,8,7,0.94));
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+    }
+    .nav-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: linear-gradient(180deg, rgba(72,18,15,0.96), rgba(25,8,7,0.96));
+      border-color: rgba(217,28,15,0.34);
+    }
+    .nav-button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .video-stage {
+      position: relative;
+      width: 100%;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      min-height: 240px;
+      z-index: 1;
+    }
+    .video-stage iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .menu-toggle {
+        top: 12px;
+        left: 12px;
+        width: 48px;
+        height: 48px;
+      }
+      .sidebar-header {
+        padding: 18px 16px 14px 78px;
+        min-height: 92px;
+      }
+      .sidebar-header::before {
+        left: 16px;
+        top: 16px;
+        width: 42px;
+        height: 42px;
+      }
+      .page { padding-top: 22px; }
+      .player-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px 16px 14px 16px;
+      }
+      .player-title { font-size: 16px; }
+      .player-nav { width: 100%; }
+      .nav-button {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú de capítulos" title="Abrir menú">
+    <span>☰</span>
+  </button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Capítulos</div>
+      <div class="sidebar-subtitle">MORTAL KOMBAT CONQUEST (1998)</div>
+    </div>
+    <ul class="chapter-list" id="chapterList"></ul>
+  </aside>
+
+  <div class="overlay" id="overlay"></div>
+
+  <main class="page">
+    <section class="player-wrapper">
+      <div class="player-card">
+        <div class="player-topbar">
+          <div class="player-title" id="currentTitle">Capítulo 1</div>
+          <div class="player-nav">
+            <button class="nav-button" id="prevButton" type="button">Anterior</button>
+            <button class="nav-button" id="nextButton" type="button">Siguiente</button>
+          </div>
+        </div>
+        <div class="video-stage" id="playerHost"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+        const episodes = [
+      { title: "Capítulo 1", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7676lc/?pub=4p2guc" },
+      { title: "Capítulo 2", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7676o6/?pub=4p2guc" },
+      { title: "Capítulo 3", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7676z0/?pub=4p2guc" },
+      { title: "Capítulo 4", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v76771s/?pub=4p2guc" },
+      { title: "Capítulo 5", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v767748/?pub=4p2guc" },
+      { title: "Capítulo 6", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v767766/?pub=4p2guc" },
+      { title: "Capítulo 7", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v76778o/?pub=4p2guc" },
+      { title: "Capítulo 8", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677ag/?pub=4p2guc" },
+      { title: "Capítulo 9", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677b8/?pub=4p2guc" },
+      { title: "Capítulo 10", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677cg/?pub=4p2guc" },
+      { title: "Capítulo 11", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677fg/?pub=4p2guc" },
+      { title: "Capítulo 12", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677e0/?pub=4p2guc" },
+      { title: "Capítulo 13", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677gy/?pub=4p2guc" },
+      { title: "Capítulo 14", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677hy/?pub=4p2guc" },
+      { title: "Capítulo 15", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677j8/?pub=4p2guc" },
+      { title: "Capítulo 16", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677km/?pub=4p2guc" },
+      { title: "Capítulo 17", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677n8/?pub=4p2guc" },
+      { title: "Capítulo 18", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677oy/?pub=4p2guc" },
+      { title: "Capítulo 19", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677qi/?pub=4p2guc" },
+      { title: "Capítulo 20", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677se/?pub=4p2guc" },
+      { title: "Capítulo 21", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677u6/?pub=4p2guc" },
+      { title: "Capítulo 22", note: "Mortal Kombat Conquest", src: "https://rumble.com/embed/v7677w8/?pub=4p2guc" }
+    ];
+
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const menuToggle = document.getElementById("menuToggle");
+    const chapterList = document.getElementById("chapterList");
+    const currentTitle = document.getElementById("currentTitle");
+    const playerHost = document.getElementById("playerHost");
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+
+    let activeIndex = 0;
+
+    function toggleMenu(forceOpen) {
+      const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : !sidebar.classList.contains("open");
+      sidebar.classList.toggle("open", shouldOpen);
+      overlay.classList.toggle("show", shouldOpen);
+    }
+
+    function closeMenuOnMobile() {
+      if (window.innerWidth <= 1024) {
+        toggleMenu(false);
+      }
+    }
+
+    function getPreviousIndex(index) {
+      return index > 0 ? index - 1 : -1;
+    }
+
+    function getNextIndex(index) {
+      return index < episodes.length - 1 ? index + 1 : -1;
+    }
+
+    function updateNavButtons() {
+      prevButton.disabled = getPreviousIndex(activeIndex) === -1;
+      nextButton.disabled = getNextIndex(activeIndex) === -1;
+    }
+
+    function goToEpisode(index) {
+      if (index < 0 || index >= episodes.length) return;
+      activeIndex = index;
+      renderMenu();
+      loadEpisode(episodes[index]);
+      updateNavButtons();
+    }
+
+    menuToggle.addEventListener("click", () => toggleMenu());
+    overlay.addEventListener("click", () => toggleMenu(false));
+
+    prevButton.addEventListener("click", () => {
+      const prevIndex = getPreviousIndex(activeIndex);
+      if (prevIndex !== -1) {
+        goToEpisode(prevIndex);
+      }
+    });
+
+    nextButton.addEventListener("click", () => {
+      const nextIndex = getNextIndex(activeIndex);
+      if (nextIndex !== -1) {
+        goToEpisode(nextIndex);
+      }
+    });
+
+    function renderMenu() {
+      chapterList.innerHTML = "";
+      episodes.forEach((episode, index) => {
+        const li = document.createElement("li");
+        li.className = "chapter-item";
+
+        const btn = document.createElement("button");
+        btn.className = "chapter-button" + (index === activeIndex ? " active" : "");
+        btn.type = "button";
+
+        btn.innerHTML = `
+          <span class="chapter-name">${episode.title}</span>
+          <span class="chapter-note">${episode.note}</span>
+        `;
+
+        btn.addEventListener("click", () => {
+          goToEpisode(index);
+          closeMenuOnMobile();
+        });
+
+        li.appendChild(btn);
+        chapterList.appendChild(li);
+      });
+    }
+
+    function loadEpisode(episode) {
+      currentTitle.textContent = `${episode.title} · ${episode.note}`;
+      playerHost.innerHTML = `
+        <iframe
+          src="${episode.src}"
+          frameborder="0"
+          allow="autoplay"
+          allowfullscreen>
+        </iframe>
+      `;
+    }
+
+    renderMenu();
+    updateNavButtons();
+    loadEpisode(episodes[0]);
+  </script>
+</body>
+</html>
